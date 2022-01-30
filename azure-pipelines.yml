@@ -1,0 +1,31 @@
+trigger:
+- main
+ 
+pool:
+vmImage: ubuntu-18.04
+ 
+steps:
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    options: '-DskipITs --settings ./maven/settings.xml'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    javaHomeOption: 'JDKVersion'
+    mavenVersionOption: 'Default'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: false
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(build.sourcesDirectory)'
+    Contents: |
+      **/target/*war
+      *.sql
+    TargetFolder: '$(build.stagingdirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
